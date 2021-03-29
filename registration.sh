@@ -25,6 +25,9 @@ for f in $FAFiles;
                     -o masks/${id}_nihpd_mask_transformed.nii.gz -n NearestNeighbor -t transformations/PedsToT1_${id}_1Warp.nii.gz \
                     -t transformations/PedsToT1_${id}_0GenericAffine.mat -v 1;
 
+        #skull-strip T1 images using patient specific mask (format: output T1, multiply T1 image with transformed mask)
+        ImageMath 3 T1/${id}_T1_skullstripped.nii.gz m T1/${id}_T1_dirMtxI.nii.gz masks/${id}_nihpd_mask_transformed.nii.gz;
+
         FAPatientFile=$( find FA/ -name "*$id*"); FAPatientFileName=$(basename $FAPatientFile); 
 
         echo Patient FA Image: $FAPatientFileName; 
@@ -40,8 +43,11 @@ for f in $FAFiles;
         # -t a -> rigid + affine reg
         # no -t flag -> non-linear reg
         echo Registering T1 to FA, patient ${id};
-        antsRegistrationSyN.sh -d 3 -f FA/${id}_FA_reoriented.nii -m T1/${id}_T1_dirMtxI.nii.gz -o transformations/T1ToFA_${id}_ \
-                    -x NULL,masks/${id}_nihpd_mask_transformed.nii.gz -t r;
+        # antsRegistrationSyN.sh -d 3 -f FA/${id}_FA_reoriented.nii -m T1/${id}_T1_dirMtxI.nii.gz -o transformations/T1ToFA_${id}_ \
+        #             -x NULL,masks/${id}_nihpd_mask_transformed.nii.gz -t r;
+
+        #alternate: run registration with skukk-stripped T1 images rather than performing masked registration (to avoid effects at edge of mask)
+         antsRegistrationSyN.sh -d 3 -f FA/${id}_FA_reoriented.nii -m T1/${id}_T1_skullstripped.nii.gz -o transformations/T1ToFA_${id}_ -t r;
 
         echo Transforming Harvard Oxford Subcortical Regions, patient ${id};
         #concatenate all transforms to transform subcortical region atlas into patient-specific DTI space
@@ -51,6 +57,11 @@ for f in $FAFiles;
                     -t transformations/T1ToFA_${id}_0GenericAffine.mat \
                     -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
                     -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
+
+        #remove matrices after reg/transformation to save space? 
+        # rm transformations/T1ToFA_${id}_0GenericAffine.mat transformations/PedsToT1_${id}_1Warp.nii.gz transformations/PedsToT1_${id}_0GenericAffine.mat \
+        #            transformations/MNIToPeds_1Warp.nii.gz transformations/MNIToPeds_0GenericAffine.mat; 
+
 
         # antsRegistrationSyNQuick.sh -d 3 -f FA/$FAPatientFileName -m T1/$T1PatientFileName -o test_${id}_ -t r;     
         

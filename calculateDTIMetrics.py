@@ -30,32 +30,11 @@ def KeyPress(obj, event):
 
 def defineRegions(segmentation, image):
 
-    # segmentations = np.zeros(int(np.max(segmentation)))
-    segmentations = [0] * (int(np.max(segmentation)))
-    mean_values = [0] * (int(np.max(segmentation)))
-    median_values = [0] * (int(np.max(segmentation)))
+    segmentations = [0] * (int(np.max(segmentation))+1)
+    mean_values = [0] * (int(np.max(segmentation))+1)
+    median_values = [0] * (int(np.max(segmentation))+1)
 
-    # indices = np.arange(1, int(np.max(segmentation)) + 1)
-    # truthArray = np.shape(segmentations.shape,22)
-    # truthArray = np.where(segmentation == indices)
-
-    # segmentations[indices] = np.where(
-    #     segmentation == indices, image, 0).flatten()
-    # segmentations = segmentations[segmentations != 0]
-
-    # looping through each voxel to check if it is segmented (i.e. = 1)
-    # if yes, the corresponding voxel from the original image is added to foreground
-    # if no, the voxel is added to background
-    # for x in range(0, image.shape[0]):
-    #     for y in range(0, image.shape[1]):
-    #         for z in range(0, image.shape[2]):
-    #             for i in range(0, 20):
-
-    #                 if segmentation[x, y, z] == 1:
-    #                     foreground.append(image[x, y, z])
-    # else:
-    #     background.append(image[x, y, z])
-    for i in range(0, int(np.max(segmentation))):
+    for i in range(1, int(np.max(segmentation))+1):
 
         foreground = np.where(segmentation == i, image, 0)
         foreground = foreground.flatten()
@@ -74,10 +53,6 @@ def defineRegions(segmentation, image):
 
     # print(segmentations)
     # print(len(foreground))
-    # snr calculations
-    # mean = np.mean(foreground)
-    # stdDev = np.std(background)
-    # snr = mean/stdDev
 
     return mean_values, median_values
 
@@ -162,12 +137,12 @@ mean_values_harvardSubcort, median_values_harvardSubcort = defineRegions(
 print('means', mean_values_harvardSubcort)
 print('medians', median_values_harvardSubcort)
 
-with open('HarvardSubCort-labels.csv', newline='', encoding='utf-8-sig') as f:
-    reader = csv.reader(f)
-    labels = list(reader)
+# with open('HarvardSubCort-labels.csv', newline='', encoding='utf-8-sig') as f:
+#     reader = csv.reader(f)
+#     labels = list(reader)
 
-np.savetxt('medians.csv', np.array(median_values_harvardSubcort).reshape(
-    1, np.array(median_values_harvardSubcort).shape[0]), header=",".join(map(str, labels)), delimiter=',', comments='')
+# np.savetxt('medians.csv', np.array(median_values_harvardSubcort).reshape(
+#     1, np.array(median_values_harvardSubcort).shape[0]), header=",".join(map(str, labels)), delimiter=',', comments='')
 
 # df = pd.read_csv('HarvardSubCort-labels.csv', header=None,
 #                  index_col=0, names=('Intensity', 'Region'))

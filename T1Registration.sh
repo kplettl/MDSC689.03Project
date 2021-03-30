@@ -1,6 +1,7 @@
 #!/bin/bash
 
-antsRegistrationSyN.sh -d 3 -f atlas/nihpd_originZero.nii -m atlas/mni1mm.nii.gz -o transformations/MNIToPeds_
+#register Adult MNI atlas to pediatric NIHPD atlas (ages 4.5-18.5)
+# antsRegistrationSyN.sh -d 3 -f atlas/nihpd_originZero.nii -m atlas/mni1mm.nii.gz -o transformations/MNIToPeds_
 
 T1Files=NIHPD_V1_Images/T1Images/'*'
 
@@ -26,5 +27,7 @@ for f in $T1Files;
 
         #skull-strip T1 images using patient specific mask (format: dimensions (3), output T1, multiply (m), inputs: T1 image, transformed mask)
         ImageMath 3 NIHPD_V1_Images/T1Images/${id}_T1_skullstripped.nii.gz m NIHPD_V1_Images/T1Images/${id}_T1_dirMtxI.nii.gz masks/${id}_nihpd_mask_transformed.nii.gz;
+        
+        echo "T1 registration for patient $id done, starting next patient";
 
     done

@@ -16,7 +16,7 @@ for f in $T1Files;
         CopyImageHeaderInformation atlas/nihpd_originZero.nii NIHPD_V1_Images/T1Images/$T1PatientFileName NIHPD_V1_Images/T1Images/${id}_T1_dirMtxI.nii.gz 1 1 1;
 
         #register pediatric atlas (origin set to zero) with each patient T1 image using the pediatric brain mask as the moving image mask
-        antsRegistrationSyN.sh -d 3 -f NIHPD_V1_Images/T1Images/${id}_T1_dirMtxI.nii.gz -m atlas/nihpd_originZero.nii -o transformations/PedsToT1_${id}_ \
+        antsRegistrationSyNQuick.sh -d 3 -f NIHPD_V1_Images/T1Images/${id}_T1_dirMtxI.nii.gz -m atlas/nihpd_originZero.nii -o transformations/PedsToT1_${id}_ \
                     -x NULL,nihpd_mask_originZero.nii;
 
         #apply transform from previous registration (NIHPD atlas to T1) to transform template mask into patient specific mask

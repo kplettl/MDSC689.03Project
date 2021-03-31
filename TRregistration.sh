@@ -13,7 +13,7 @@
 #     done
 TRFiles=NIHPD_V1_Images/TRImages/'*';
 
-for f in TRFiles; 
+for f in $TRFiles; 
     do 
         filename=$(basename $f); 
         id=${filename%%_*}; 
@@ -50,7 +50,7 @@ for f in TRFiles;
         #concatenate all transforms to transform subcortical region atlas into patient-specific DTI space
         #Adult atlas -> peds atlas -> patient-specific T1 -> patient-specific DTI
         antsApplyTransforms -d 3 -i atlas/HarvardOxfordSubcortical.nii.gz -r NIHPD_V1_Images/MDImages/${id}_MD.nii \
-                    -o regResults/HarvardSub/${id}_HarvardSubcortTransformedtoMD.nii -n NearestNeighbor \
+                    -o regResults/HarvardSub/MD/${id}_HarvardSubcortTransformedtoMD.nii -n NearestNeighbor \
                     -t transformations/T1ToMD/T1ToMD_${id}_1Warp.nii.gz -t transformations/T1ToMD/T1ToMD_${id}_0GenericAffine.mat \
                     -t transformations/PedsToT1/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1/PedsToT1_${id}_0GenericAffine.mat \
                     -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
@@ -59,7 +59,7 @@ for f in TRFiles;
         echo Transforming Harvard Oxford Cortical Atlas, patient ${id};
 
         antsApplyTransforms -d 3 -i atlas/HarvardOxfordCortical.nii.gz -r NIHPD_V1_Images/MDImages/${id}_MD.nii \
-                    -o regResults/HarvardCort/${id}_HarvardCortTransformedtoMD.nii -n NearestNeighbor \
+                    -o regResults/HarvardCort/MD/${id}_HarvardCortTransformedtoMD.nii -n NearestNeighbor \
                     -t transformations/T1ToMD/T1ToMD_${id}_1Warp.nii.gz -t transformations/T1ToMD/T1ToMD_${id}_0GenericAffine.mat \
                     -t transformations/PedsToT1/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1/PedsToT1_${id}_0GenericAffine.mat \
                     -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
@@ -68,7 +68,7 @@ for f in TRFiles;
         echo Transforming Johns Hopkins White Matter Atlas, patient ${id};
 
         antsApplyTransforms -d 3 -i atlas/JHU_WM1mm.nii.gz -r NIHPD_V1_Images/MDImages/${id}_MD.nii \
-                    -o regResults/JHU_WM/${id}_JHUTransformedtoMD.nii -n NearestNeighbor \
+                    -o regResults/JHU_WM/MD/${id}_JHUTransformedtoMD.nii -n NearestNeighbor \
                     -t transformations/T1ToMD/T1ToMD_${id}_1Warp.nii.gz -t transformations/T1ToMD/T1ToMD_${id}_0GenericAffine.mat \
                     -t transformations/PedsToT1/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1/PedsToT1_${id}_0GenericAffine.mat \
                     -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;

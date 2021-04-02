@@ -23,21 +23,21 @@ echo Transforming Harvard Oxford Subcortical Regions to RD, patient ${id};
 antsApplyTransforms -d 3 -i atlas/HarvardOxfordSubcortical.nii.gz -r NIHPD_V1_Images/RDImages/${id}_RD.nii.gz\
             -o regResults/HarvardSub/RD/${id}_HarvardSubcortTransformedtoRD.nii -n NearestNeighbor \
             -t transformations/T1ToRD/T1ToRD_${id}_1Warp.nii.gz -t transformations/T1ToRD/T1ToRD_${id}_0GenericAffine.mat \
-            -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
+            -t transformations/PedsToT1/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1/PedsToT1_${id}_0GenericAffine.mat \
             -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
 
 #transform harvard cortical regions to RD maps
 antsApplyTransforms -d 3 -i atlas/HarvardOxfordCortical.nii.gz -r NIHPD_V1_Images/RDImages/${id}_RD.nii.gz\
             -o regResults/HarvardCort/RD/${id}_HarvardCortTransformedtoRD.nii -n NearestNeighbor \
             -t transformations/T1ToRD/T1ToRD_${id}_1Warp.nii.gz -t transformations/T1ToRD/T1ToRD_${id}_0GenericAffine.mat \
-            -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
+            -t transformations/PedsToT1/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1/PedsToT1_${id}_0GenericAffine.mat \
             -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
 
 #transform JHU white matter regions to RD maps
 antsApplyTransforms -d 3 -i atlas/JHU_WM1mm.nii.gz -r NIHPD_V1_Images/RDImages/${id}_RD.nii.gz\
             -o regResults/JHU_WM/RD/${id}_JHUTransformedtoRD.nii -n NearestNeighbor \
             -t transformations/T1ToRD/T1ToRD_${id}_1Warp.nii.gz -t transformations/T1ToRD/T1ToRD_${id}_0GenericAffine.mat \
-            -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
+            -t transformations/PedsToT1/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1/PedsToT1_${id}_0GenericAffine.mat \
             -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
 
 #remove matrices after reg/transformation to save space? 

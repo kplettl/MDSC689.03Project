@@ -28,6 +28,9 @@ for f in $T1Files;
         #skull-strip T1 images using patient specific mask (format: dimensions (3), output T1, multiply (m), inputs: T1 image, transformed mask)
         ImageMath 3 NIHPD_V1_Images/T1Images/${id}_T1_skullstripped.nii.gz m NIHPD_V1_Images/T1Images/${id}_T1_dirMtxI.nii.gz masks/${id}_nihpd_mask_transformed.nii.gz;
         
+        #flip x, y axis of skull stripped T1 so they are in the same orientation as atlas images 
+        PermuteFlipImageOrientationAxes 3 NIHPD_V1_Images/T1Images/${id}_T1_skullstripped.nii.gz NIHPD_V1_Images/T1Images/${id}_T1_SS_reoriented.nii.gz 0 1 2 1 1 0;
+
         echo "T1 registration for patient $id done, starting next patient";
 
     done

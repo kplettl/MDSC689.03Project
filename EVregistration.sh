@@ -7,30 +7,30 @@ for f in $EVFiles;
         filename=$(basename $f); 
         id=${filename%%_*}; 
         echo Patient ID: $id; 
-        T1PatientFile=$( find NIHPD_V1_Images/T1Images/ -name "$id*"); T1PatientFileName=$(basename $T1PatientFile); 
-        echo Patient T1 Image: $T1PatientFileName; 
+        # T1PatientFile=$( find NIHPD_V1_Images/T1Images/ -name "$id*"); T1PatientFileName=$(basename $T1PatientFile); 
+        # echo Patient T1 Image: $T1PatientFileName; 
 
         EVPatientFile=$( find NIHPD_V1_Images/EVImages/ -name "*$id*"); EVPatientFileName=$(basename $EVPatientFile); 
 
         echo Patient EV Image: $EVPatientFileName; 
 
         #split 4D EV image into 3 separate images (1000 -> lambda 1, 1001 -> lambda 2, 1002 -> lambda 3)
-        ImageMath 4 NIHPD_V1_Images/EVImages/${id}_EV_decomp_.nii TimeSeriesDisassemble NIHPD_V1_Images/EVImages/$EVPatientFileName;
-
-        #flip x axis of DTI images so they are in the same orientation as T1 images 
-        # generating lambda 1: axial diffusivity map 
+        ImageMath 4 NIHPD_V1_Images/EVImages/${id}_EV_decomp_.nii.gz TimeSeriesDisassemble NIHPD_V1_Images/EVImages/$EVPatientFileName;
 
         #make AD image directory for storing AD maps
-        mkdir NIHPD_V1_Images/ADImages/;
+        # mkdir NIHPD_V1_Images/ADImages/;
 
-        PermuteFlipImageOrientationAxes 3 NIHPD_V1_Images/EVImages/${id}_EV_decomp_1000.nii NIHPD_V1_Images/ADImages/${id}_AD.nii 0 1 2 1 0 0;
-
-        PermuteFlipImageOrientationAxes 3 NIHPD_V1_Images/EVImages/${id}_EV_decomp_1001.nii NIHPD_V1_Images/EVImages/${id}_EV_1001_reoriented.nii 0 1 2 1 0 0;
-
-        PermuteFlipImageOrientationAxes 3 NIHPD_V1_Images/EVImages/${id}_EV_decomp_1002.nii NIHPD_V1_Images/EVImages/${id}_EV_1002_reoriented.nii 0 1 2 1 0 0;
+        #flip y axis of DTI images so they are in the same orientation as atlas images
+        
+        # generating lambda 1: axial diffusivity map 
+        PermuteFlipImageOrientationAxes 3 NIHPD_V1_Images/EVImages/${id}_EV_decomp_1000.nii.gz NIHPD_V1_Images/ADImages/${id}_AD.nii 0 1 2 0 1 0;
+        #lambda 2
+        PermuteFlipImageOrientationAxes 3 NIHPD_V1_Images/EVImages/${id}_EV_decomp_1001.nii.gz NIHPD_V1_Images/EVImages/${id}_EV_1001_reoriented.nii 0 1 2 0 1 0;
+        #lambda 3 
+        PermuteFlipImageOrientationAxes 3 NIHPD_V1_Images/EVImages/${id}_EV_decomp_1002.nii.gz NIHPD_V1_Images/EVImages/${id}_EV_1002_reoriented.nii 0 1 2 0 1 0;
 
         #make RD image directory for storing RD maps
-        mkdir NIHPD_V1_Images/RDImages/;
+        # mkdir NIHPD_V1_Images/RDImages/;
 
         #generating RD map -> Add lambda 2 and lambda 3 images, then divide result by 2 
         ImageMath 3 NIHPD_V1_Images/EVImages/${id}_EV_added.nii.gz + NIHPD_V1_Images/EVImages/${id}_EV_1001_reoriented.nii NIHPD_V1_Images/EVImages/${id}_EV_1002_reoriented.nii;
@@ -49,28 +49,56 @@ for f in $EVFiles;
         #             -x NULL,masks/${id}_nihpd_mask_transformed.nii.gz -t r;
 
         #alternate: run registration with skull-stripped T1 images rather than performing masked registration (to avoid effects at edge of mask)
-        antsRegistrationSyN.sh -d 3 -f NIHPD_V1_Images/ADImages/${id}_AD.nii -m NIHPD_V1_Images/T1Images/${id}_T1_skullstripped.nii.gz -o transformations/T1ToAD_${id}_ -t r;
+        antsRegistrationSyN.sh -d 3 -f NIHPD_V1_Images/ADImages/${id}_AD.nii -m NIHPD_V1_Images/T1Images/${id}_T1_SS_reoriented.nii.gz -o transformations/T1ToAD/T1ToAD_${id}_;
+
+        #registering T1 to RD
+        echo Registering T1 to RD, patient ${id};
+
+        antsRegistrationSyN.sh -d 3 -f NIHPD_V1_Images/RDImages/${id}_RD.nii -m NIHPD_V1_Images/T1Images/${id}_T1_SS_reoriented.nii.gz -o transformations/T1ToRD/T1ToRD_${id}_;
 
         echo Transforming Harvard Oxford Subcortical Regions to AD, patient ${id};
         #concatenate all transforms to transform subcortical region atlas into patient-specific DTI space
         #Adult atlas -> peds atlas -> patient-specific T1 -> patient-specific DTI
         antsApplyTransforms -d 3 -i atlas/HarvardOxfordSubcortical.nii.gz -r NIHPD_V1_Images/ADImages/${id}_AD.nii\
-                    -o regResults/${id}_HarvardSubcortTransformedtoAD.nii -n NearestNeighbor \
-                    -t transformations/T1ToAD_${id}_0GenericAffine.mat \
+                    -o regResults/HarvardSub/AD/${id}_HarvardSubcortTransformedtoAD.nii -n NearestNeighbor \
+                    -t transformations/T1ToAD/T1ToAD_${id}_1Warp.nii.gz -t transformations/T1ToAD/T1ToAD_${id}_0GenericAffine.mat \
                     -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
                     -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
 
-        #registering T1 to RD
-        echo Registering T1 to RD, patient ${id};
-
-        antsRegistrationSyN.sh -d 3 -f NIHPD_V1_Images/RDImages/${id}_RD.nii -m NIHPD_V1_Images/T1Images/${id}_T1_skullstripped.nii.gz -o transformations/T1ToRD_${id}_ -t r;
-
+        #transform harvard subcortical region to RD maps
         antsApplyTransforms -d 3 -i atlas/HarvardOxfordSubcortical.nii.gz -r NIHPD_V1_Images/RDImages/${id}_RD.nii\
-                    -o regResults/${id}_HarvardSubcortTransformedtoRD.nii -n NearestNeighbor \
-                    -t transformations/T1ToRD_${id}_0GenericAffine.mat \
+                    -o regResults/HarvardSub/RD/${id}_HarvardSubcortTransformedtoRD.nii -n NearestNeighbor \
+                    -t transformations/T1ToRD/T1ToRD_${id}_1Warp.nii.gz -t transformations/T1ToRD/T1ToRD_${id}_0GenericAffine.mat \
                     -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
                     -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
 
+        #transform harvard cortical regions to AD
+        antsApplyTransforms -d 3 -i atlas/HarvardOxfordCortical.nii.gz -r NIHPD_V1_Images/ADImages/${id}_AD.nii\
+                    -o regResults/HarvardCort/AD/${id}_HarvardCortTransformedtoAD.nii -n NearestNeighbor \
+                    -t transformations/T1ToAD/T1ToAD_${id}_1Warp.nii.gz -t transformations/T1ToAD/T1ToAD_${id}_0GenericAffine.mat \
+                    -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
+                    -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
+                    
+        #transform harvard cortical regions to RD maps
+        antsApplyTransforms -d 3 -i atlas/HarvardOxfordCortical.nii.gz -r NIHPD_V1_Images/RDImages/${id}_RD.nii\
+                    -o regResults/HarvardCort/RD/${id}_HarvardCortTransformedtoRD.nii -n NearestNeighbor \
+                    -t transformations/T1ToRD/T1ToRD_${id}_1Warp.nii.gz -t transformations/T1ToRD/T1ToRD_${id}_0GenericAffine.mat \
+                    -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
+                    -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
+
+        #transform JHU white matter regions to AD
+        antsApplyTransforms -d 3 -i atlas/JHU_WM1mm.nii.gz -r NIHPD_V1_Images/ADImages/${id}_AD.nii\
+                    -o regResults/JHU_WM/AD/${id}_JHUTransformedtoAD.nii -n NearestNeighbor \
+                    -t transformations/T1ToAD/T1ToAD_${id}_1Warp.nii.gz -t transformations/T1ToAD/T1ToAD_${id}_0GenericAffine.mat \
+                    -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
+                    -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
+                    
+        #transform JHU white matter regions to RD maps
+        antsApplyTransforms -d 3 -i atlas/JHU_WM1mm.nii.gz -r NIHPD_V1_Images/RDImages/${id}_RD.nii\
+                    -o regResults/JHU_WM/RD/${id}_JHUTransformedtoRD.nii -n NearestNeighbor \
+                    -t transformations/T1ToRD/T1ToRD_${id}_1Warp.nii.gz -t transformations/T1ToRD/T1ToRD_${id}_0GenericAffine.mat \
+                    -t transformations/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1_${id}_0GenericAffine.mat \
+                    -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
 
         #remove matrices after reg/transformation to save space? 
         # rm transformations/T1ToFA_${id}_0GenericAffine.mat transformations/PedsToT1_${id}_1Warp.nii.gz transformations/PedsToT1_${id}_0GenericAffine.mat \

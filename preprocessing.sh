@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TRFiles=NIHPD_V1_Images/TRImages/'*';
-
+#test
 for f in $TRFiles; 
     do 
         filename=$(basename $f); 

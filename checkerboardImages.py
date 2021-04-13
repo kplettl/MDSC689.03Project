@@ -55,9 +55,9 @@ shiftScaleFilter1.SetShift(-1.0 * reader1.GetOutput().GetScalarRange()[0])
 oldRange1 = reader1.GetOutput().GetScalarRange(
 )[1] - reader1.GetOutput().GetScalarRange()[0]
 
-newRange = 255
+newRange1 = 100
 
-shiftScaleFilter1.SetScale(newRange/oldRange1)
+shiftScaleFilter1.SetScale(newRange1/oldRange1)
 shiftScaleFilter1.Update()
 
 image1 = createNumpyFromVTK(reader1.GetOutput())
@@ -102,9 +102,9 @@ shiftScaleFilter2.SetShift(-1.0 * reader2.GetOutput().GetScalarRange()[0])
 oldRange2 = reader2.GetOutput().GetScalarRange(
 )[1] - reader2.GetOutput().GetScalarRange()[0]
 
-# newRange = 255
+newRange2 = 100
 
-shiftScaleFilter2.SetScale(newRange/oldRange2)
+shiftScaleFilter2.SetScale(newRange2/oldRange2)
 shiftScaleFilter2.Update()
 
 
@@ -125,9 +125,11 @@ imageViewer = vtk.vtkImageViewer2()
 imageViewer.SetInputConnection(checkerboardFilter.GetOutputPort())
 imageViewer.SetupInteractor(renderWindowInteractor)
 imageViewer.GetRenderer().ResetCamera()
+# imageViewer.SetSlice(140)
 imageViewer.SetSlice(50)
-# imageViewer.SetColorLevel(4684)
-# imageViewer.SetColorWindow(9369)
+
+imageViewer.SetColorLevel(45)
+imageViewer.SetColorWindow(90)
 
 renderWindowInteractor.Initialize()
 renderWindowInteractor.Start()

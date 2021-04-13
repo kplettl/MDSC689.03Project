@@ -3,17 +3,6 @@ import tkinter
 import tkinter.filedialog
 import os
 import sys
-import itk
-from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
-
-
-def createNumpyFromVTK(input):
-    scalars = input.GetPointData().GetScalars()
-    imageArray = vtk_to_numpy(scalars).reshape(
-        input.GetDimensions(), order='F')
-
-    return imageArray
-
 
 # ask user to choose image using tkinter
 print("Choose first image")
@@ -45,6 +34,8 @@ else:
 
 reader1.Update()
 
+# change pixel intensity range of images to be in the same scale,
+# otherwise cannot visualise together in the checkerboard due to different grey values
 shiftScaleFilter1 = vtk.vtkImageShiftScale()
 shiftScaleFilter1.SetOutputScalarTypeToUnsignedChar()
 
@@ -55,12 +46,10 @@ shiftScaleFilter1.SetShift(-1.0 * reader1.GetOutput().GetScalarRange()[0])
 oldRange1 = reader1.GetOutput().GetScalarRange(
 )[1] - reader1.GetOutput().GetScalarRange()[0]
 
-newRange1 = 100
+newRange1 = 255
 
 shiftScaleFilter1.SetScale(newRange1/oldRange1)
 shiftScaleFilter1.Update()
-
-image1 = createNumpyFromVTK(reader1.GetOutput())
 
 # ask user to choose image using tkinter
 print("Choose second image")
@@ -92,6 +81,8 @@ else:
 
 reader2.Update()
 
+# change pixel intensity range of images to be in the same scale,
+# otherwise cannot visualise together in the checkerboard due to different grey values
 shiftScaleFilter2 = vtk.vtkImageShiftScale()
 shiftScaleFilter2.SetOutputScalarTypeToUnsignedChar()
 
@@ -102,34 +93,35 @@ shiftScaleFilter2.SetShift(-1.0 * reader2.GetOutput().GetScalarRange()[0])
 oldRange2 = reader2.GetOutput().GetScalarRange(
 )[1] - reader2.GetOutput().GetScalarRange()[0]
 
-newRange2 = 100
+newRange2 = 255
 
 shiftScaleFilter2.SetScale(newRange2/oldRange2)
 shiftScaleFilter2.Update()
 
-
+# set up vtk checkerboard filter with 5 or 6 divisions
 checkerboardFilter = vtk.vtkImageCheckerboard()
-
-# checkerboardFilter.SetInputConnection(0, reader1.GetOutputPort())
-# checkerboardFilter.SetInputConnection(1, reader2.GetOutputPort())
-
 checkerboardFilter.SetInputConnection(0, shiftScaleFilter1.GetOutputPort())
 checkerboardFilter.SetInputConnection(1, shiftScaleFilter2.GetOutputPort())
+# checkerboardFilter.SetNumberOfDivisions(5, 5, 1)
 checkerboardFilter.SetNumberOfDivisions(6, 6, 1)
 
+# set up interactor and image viewer
 renderWindowInteractor = vtk.vtkRenderWindowInteractor()
 
 imageViewer = vtk.vtkImageViewer2()
-# imageViewer.SetInputData(image2)
-
 imageViewer.SetInputConnection(checkerboardFilter.GetOutputPort())
 imageViewer.SetupInteractor(renderWindowInteractor)
 imageViewer.GetRenderer().ResetCamera()
-# imageViewer.SetSlice(140)
-imageViewer.SetSlice(50)
 
-imageViewer.SetColorLevel(45)
-imageViewer.SetColorWindow(90)
+# NIHPD to T1
+imageViewer.SetSlice(140)
 
+# T1 to FA
+# imageViewer.SetSlice(50)
+
+# imageViewer.SetColorLevel(45)
+# imageViewer.SetColorWindow(90)
+
+# initalise and start render window
 renderWindowInteractor.Initialize()
 renderWindowInteractor.Start()

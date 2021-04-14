@@ -1,26 +1,19 @@
 #!/bin/bash
 
+# $1 -> used for array jobs, takes first input, loop in .slurm file loops through all files 
 filename=$(basename $1); 
+
 id=${filename%%_*}; 
 echo Patient ID: $id; 
-# T1PatientFile=$( find NIHPD_V1_Images/T1Images/ -name "$id*"); T1PatientFileName=$(basename $T1PatientFile); 
-# echo Patient T1 Image: $T1PatientFileName; 
 
 ADPatientFile=$( find NIHPD_V1_Images/ADImages/ -name "*$id*"); ADPatientFileName=$(basename $ADPatientFile); 
 
 echo Patient AD Image: $ADPatientFileName; 
 
 echo Registering T1 to AD, patient ${id};
-# antsRegistrationSyN.sh -d 3 -f FA/${id}_FA_reoriented.nii -m T1/${id}_T1_dirMtxI.nii.gz -o transformations/T1ToFA_${id}_ \
-#             -x NULL,masks/${id}_nihpd_mask_transformed.nii.gz -t r;
 
-#alternate: run registration with skull-stripped T1 images rather than performing masked registration (to avoid effects at edge of mask)
+#register skull-stripped T1 to AD
 antsRegistrationSyN.sh -d 3 -f NIHPD_V1_Images/ADImages/${id}_AD.nii -m NIHPD_V1_Images/T1Images/${id}_T1_SS_reoriented.nii.gz -o transformations/T1ToAD/T1ToAD_${id}_;
-
-# #registering T1 to RD
-# echo Registering T1 to RD, patient ${id};
-
-# antsRegistrationSyN.sh -d 3 -f NIHPD_V1_Images/RDImages/${id}_RD.nii -m NIHPD_V1_Images/T1Images/${id}_T1_SS_reoriented.nii.gz -o transformations/T1ToRD/T1ToRD_${id}_;
 
 echo Transforming Harvard Oxford Subcortical Regions to AD, patient ${id};
 #concatenate all transforms to transform subcortical region atlas into patient-specific DTI space
@@ -44,11 +37,4 @@ antsApplyTransforms -d 3 -i atlas/JHU_WM1mm.nii.gz -r NIHPD_V1_Images/ADImages/$
             -t transformations/T1ToAD/T1ToAD_${id}_1Warp.nii.gz -t transformations/T1ToAD/T1ToAD_${id}_0GenericAffine.mat \
             -t transformations/PedsToT1/PedsToT1_${id}_1Warp.nii.gz -t transformations/PedsToT1/PedsToT1_${id}_0GenericAffine.mat \
             -t transformations/MNIToPeds_1Warp.nii.gz -t transformations/MNIToPeds_0GenericAffine.mat -v 1;
-
-#remove matrices after reg/transformation to save space? 
-# rm transformations/T1ToFA_${id}_0GenericAffine.mat transformations/PedsToT1_${id}_1Warp.nii.gz transformations/PedsToT1_${id}_0GenericAffine.mat \
-#            transformations/MNIToPeds_1Warp.nii.gz transformations/MNIToPeds_0GenericAffine.mat; 
-
-
-# antsRegistrationSyNQuick.sh -d 3 -f FA/$FAPatientFileName -m T1/$T1PatientFileName -o test_${id}_ -t r;     
 
